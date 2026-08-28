@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>店內 POS</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header>
+        <div>
+          <p class="eyebrow">LIGHT BAR · STORE POS</p>
+          <h1>輕盈生活，從這一杯開始</h1>
+        </div>
+        <div class="header-actions">
+          <span id="syncStatus" class="sync-status" aria-live="polite">雲端同步準備中</span>
+          <a class="secondary customer-booking-link" href="booking.html" target="_blank" rel="noopener">客人預約頁</a>
+          <button id="showMemberships" class="secondary">VIP／套票名冊</button>
+          <button id="newOrder" class="secondary">清空目前訂單</button>
+          <button id="showReports" class="secondary">今日統計</button>
+        </div>
+      </header>
+
+      <section class="pos-layout" aria-label="點單系統">
+        <section class="menu-panel">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-category="drink">飲品</button>
+            <button class="tab" data-category="vip">VIP 餐卡兌換</button>
+            <button class="tab" data-category="card">VIP 營養卡</button>
+            <button class="tab" data-category="workshop-card">工作坊套票</button>
+            <button class="tab" data-category="calendar">預約行事曆</button>
+          </div>
+          <div id="menuGrid" class="menu-grid"></div>
+        </section>
+
+        <aside class="cart-panel">
+          <div class="order-heading">
+            <div>
+              <p class="eyebrow">ORDER</p>
+              <h2>本筆訂單</h2>
+            </div>
+            <span id="itemCount" class="pill">0 項</span>
+          </div>
+
+          <div id="customerField">
+            <label class="field-label" for="customerName">顧客姓名／桌號 <span>選填</span></label>
+            <input id="customerName" type="text" placeholder="例如：王小姐／3號桌" />
+          </div>
+          <section id="vipFields" class="vip-fields hidden" aria-label="VIP 餐卡兌換資料">
+            <p class="vip-title">VIP 餐卡兌換 <span>本筆不計入營收</span></p>
+            <label class="field-label" for="vipMemberPicker">選擇 VIP 會員</label>
+            <select id="vipMemberPicker"><option value="">請選擇會員</option></select>
+            <label class="field-label" for="coachName">教練是誰</label>
+            <select id="coachName">
+              <option value="">請選擇</option><option>寶莛</option><option>晏玲</option><option>婉馨</option><option>寶筠</option><option>秀瓊</option><option>潔蘭</option><option>宥靜</option><option>素慈／光輝</option>
+            </select>
+            <label class="field-label" for="vipMembership">使用中的 VIP 卡 <span>輸入會員姓名後可選</span></label>
+            <select id="vipMembership"><option value="">手動登記卡別</option></select>
+            <p id="vipTeaInfo" class="vip-tea-info hidden"></p>
+            <label class="field-label" for="vipCardType">VIP 餐卡</label>
+            <select id="vipCardType"><option value="5">5 格卡</option><option value="15">15 格卡</option></select>
+            <label class="field-label">本次使用第幾格</label>
+            <div id="gridNumber" class="grid-number"></div>
+            <label class="field-label">能量蛋白飲口味 <span>可複選</span></label>
+            <div class="choice-grid" data-vip-choice="flavor">
+              <button type="button">草莓</button><button type="button">香草</button><button type="button">拿鐵</button><button type="button">巧克力</button><button type="button">巧餅</button><button type="button">芒果</button><button type="button">薄荷巧克力</button><button type="button">豌豆（純素）</button>
+            </div>
+            <label class="field-label">加強選項 <span>可複選</span></label>
+            <div class="choice-grid" data-vip-choice="boost">
+              <button type="button">優蛋</button><button type="button">特優</button><button type="button">Beta 葡聚糖</button><button type="button">五倍纖維</button>
+            </div>
+          </section>
+
+          <div id="bookingFields" class="booking-fields hidden">
+            <label class="field-label" for="bookingDate">活動日期</label>
+            <input id="bookingDate" type="date" />
+            <label class="field-label" for="bookingContact">聯絡方式</label>
+            <input id="bookingContact" type="text" placeholder="電話或 LINE" />
+          </div>
+          <section id="workshopBookingFields" class="booking-fields hidden" aria-label="工作坊預約">
+            <p class="vip-title">工作坊預約 <span>使用套票扣 1 次</span></p>
+            <label class="field-label" for="workshopMemberPicker">選擇持票會員</label>
+            <select id="workshopMemberPicker"><option value="">請選擇會員</option></select>
+            <label class="field-label" for="workshopMembership">使用工作坊套票</label>
+            <select id="workshopMembership"><option value="">請先選擇會員</option></select>
+            <p id="workshopSelected" class="vip-tea-info">請從左側選擇欲預約的課程</p>
+          </section>
+
+          <div id="cartItems" class="cart-items"><p class="empty-cart">從左側選擇品項開始點單</p></div>
+          <div class="order-note">
+            <label class="field-label" for="orderNote">備註 <span>選填</span></label>
+            <textarea id="orderNote" rows="2" placeholder="少冰、活動需求…"></textarea>
+          </div>
+          <div class="totals">
+            <div><span>小計</span><strong id="subtotal">NT$0</strong></div>
+            <div class="total"><span>合計</span><strong id="total">NT$0</strong></div>
+          </div>
+          <button id="checkout" class="checkout" disabled>完成結帳</button>
+        </aside>
+      </section>
+    </main>
+
+    <dialog id="reportDialog">
+      <div class="dialog-header"><div><p class="eyebrow">DAILY REPORT</p><h2>今日營運統計</h2></div><button class="icon-button" data-close>&times;</button></div>
+      <div id="reportContent"></div>
+      <div class="dialog-actions"><button id="exportData" class="secondary">匯出今日 CSV</button><button class="primary" data-close>完成</button></div>
+    </dialog>
+
+    <dialog id="successDialog">
+      <div class="success"><div class="success-mark">✓</div><h2>已完成結帳</h2><p id="successMessage"></p><button class="primary" data-close>開始下一筆</button></div>
+    </dialog>
+
+    <dialog id="membershipDialog">
+      <div class="dialog-header"><div><p class="eyebrow">MEMBERSHIP</p><h2>VIP／套票名冊</h2></div><button class="icon-button" data-close>&times;</button></div>
+      <section class="membership-add">
+        <strong>新增現有卡</strong>
+        <div class="membership-add-fields"><input id="membershipCustomer" type="text" placeholder="會員姓名" /><select id="membershipKind"><option value="vip-5">VIP 5 格卡</option><option value="vip-15">VIP 15 格卡</option><option value="workshop-1">工作坊單堂票</option><option value="workshop-5">工作坊五次套票</option></select><input id="membershipRemaining" type="number" min="0" value="5" aria-label="剩餘格數或次數" /></div>
+        <button id="addMembership" class="secondary" type="button">加入名冊</button>
+      </section>
+      <label class="membership-search">搜尋會員<input id="membershipSearch" type="search" placeholder="輸入姓名、卡別或預約碼" /></label>
+      <div id="membershipContent"></div>
+      <div class="dialog-actions"><button class="primary" data-close>完成</button></div>
+    </dialog>
+    <dialog id="bookingDialog">
+      <div class="dialog-header"><div><p class="eyebrow">BOOKING MANAGER</p><h2>管理工作坊預約</h2></div><button class="icon-button" data-close>&times;</button></div>
+      <div id="bookingManagerContent"></div>
+      <div class="dialog-actions"><button class="primary" data-close>完成</button></div>
+    </dialog>
+    <dialog id="eventDialog"><div class="dialog-header"><div><p class="eyebrow">NEW WORKSHOP</p><h2>新增課程時間</h2></div><button class="icon-button" data-close>&times;</button></div><label class="field-label">課程名稱<input id="eventTitle" placeholder="例如：伸展瑜伽" /></label><div class="membership-add-fields"><label class="field-label">日期<input id="eventDate" type="date" value="2026-09-01" /></label><label class="field-label">開始時間<input id="eventStart" type="time" value="10:00" /></label><label class="field-label">結束時間<input id="eventEnd" type="time" value="11:00" /></label></div><label class="field-label">可預約名額<input id="eventCapacity" type="number" min="1" value="10" /></label><div class="dialog-actions"><button class="secondary" data-close>取消</button><button id="saveEvent" class="primary">新增到行事曆</button></div></dialog>
+    <script src="app.js"></script>
+  </body>
+</html>

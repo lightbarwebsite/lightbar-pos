@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Light Bar｜工作坊預約</title>
+    <link rel="stylesheet" href="booking.css" />
+  </head>
+  <body>
+    <main class="booking-shell">
+      <section class="booking-hero">
+        <p>LIGHT BAR · WORKSHOP</p>
+        <h1>工作坊預約</h1>
+        <span>持有工作坊票券即可自行預約</span>
+      </section>
+      <section id="bookingLogin" class="booking-card">
+        <h2>登入我的票券</h2>
+        <p>請輸入購票時登記的姓名與店家提供的預約碼。</p>
+        <label>姓名<input id="memberName" autocomplete="name" placeholder="例如：王小美" /></label>
+        <label>預約碼<input id="memberCode" autocapitalize="characters" placeholder="例如：LB-ABC123" /></label>
+        <button id="memberLogin">查看可預約課程</button>
+        <p id="loginMessage" class="message"></p>
+      </section>
+      <section id="bookingPortal" class="booking-card hidden">
+        <div class="portal-header"><div><p>我的工作坊票券</p><h2 id="memberGreeting"></h2></div><button id="memberLogout" class="text-button">登出</button></div>
+        <div id="ticketInfo" class="ticket-info"></div>
+        <section id="myBookings" class="my-bookings"></section>
+        <div id="bookingCalendarHeading" class="calendar-heading">
+          <div><p>選擇想參加的活動</p><h3>2026 年 9 月課程日曆</h3></div>
+          <span>點選課程即可預約</span>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div id="eventCalendar" class="event-calendar"></div>
+        <p id="portalMessage" class="message"></p>
+      </section>
+    </main>
+    <div id="bookingNotice" class="booking-notice" role="status" aria-live="polite"></div>
+    <script src="booking.js"></script>
+  </body>
+</html>
