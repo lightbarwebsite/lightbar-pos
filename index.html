@@ -28,6 +28,7 @@
             <button class="tab active" data-category="drink">飲品</button>
             <button class="tab" data-category="vip">VIP 餐卡兌換</button>
             <button class="tab" data-category="card">VIP 營養卡</button>
+            <button class="tab" data-category="stored-drink">寄杯銷售</button>
             <button class="tab" data-category="workshop-card">工作坊套票</button>
             <button class="tab" data-category="calendar">預約行事曆</button>
           </div>
@@ -122,7 +123,7 @@
     <dialog id="membershipDialog">
       <div class="dialog-header"><div><p class="eyebrow">MEMBERSHIP</p><h2>VIP／套票名冊</h2></div><button class="icon-button" data-close>&times;</button></div>
       <section class="membership-add">
-        <strong>新增卡／特調寄杯</strong>
+        <strong>補登既有卡／寄杯 <small>不列入銷售額</small></strong>
         <div class="membership-add-fields"><input id="membershipCustomer" type="text" placeholder="會員姓名" /><select id="membershipKind"><option value="vip-5">VIP 5 格卡</option><option value="vip-15">VIP 15 格卡</option><option value="workshop-1">工作坊單堂票</option><option value="workshop-5">工作坊五次套票</option><option value="stored-cr7">CR7 勁能飲寄杯（$150）</option><option value="stored-180">特調飲品寄杯（$180）</option><option value="stored-250">特調飲品寄杯（$250）</option></select><input id="membershipRemaining" type="number" min="1" value="5" aria-label="剩餘格數、次數或杯數" /></div>
         <button id="addMembership" class="secondary" type="button">加入名冊</button>
       </section>
