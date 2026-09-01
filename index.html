@@ -47,6 +47,14 @@
             <label class="field-label" for="customerName">顧客姓名／桌號 <span>選填</span></label>
             <input id="customerName" type="text" placeholder="例如：王小姐／3號桌" />
           </div>
+          <section id="drinkCreditFields" class="drink-credit-fields hidden" aria-label="特調寄杯兌換">
+            <p class="vip-title">特調寄杯兌換 <span>使用寄杯額度，不收現金</span></p>
+            <label class="field-label" for="drinkCreditCustomer">選擇寄杯客人</label>
+            <select id="drinkCreditCustomer"><option value="">不使用寄杯</option></select>
+            <label class="field-label" for="drinkCreditMembership">使用的寄杯額度</label>
+            <select id="drinkCreditMembership" disabled><option value="">請先選擇客人</option></select>
+            <p id="drinkCreditInfo" class="drink-credit-info">選擇客人後，系統會提示這筆飲品可使用的寄杯額度。</p>
+          </section>
           <section id="vipFields" class="vip-fields hidden" aria-label="VIP 餐卡兌換資料">
             <p class="vip-title">VIP 餐卡兌換 <span>本筆不計入營收</span></p>
             <label class="field-label" for="vipMemberPicker">選擇 VIP 會員</label>
@@ -119,6 +127,7 @@
         <button id="addMembership" class="secondary" type="button">加入名冊</button>
       </section>
       <label class="membership-search">搜尋會員<input id="membershipSearch" type="search" placeholder="輸入姓名、卡別或預約碼" /></label>
+      <label class="membership-sort">排序方式<select id="membershipSort"><option value="stroke">姓名筆畫</option><option value="newest">購買日期：新到舊</option><option value="oldest">購買日期：舊到新</option><option value="expiry">使用期限：最早到最晚</option></select></label>
       <div id="membershipContent"></div>
       <div class="dialog-actions"><button class="primary" data-close>完成</button></div>
     </dialog>
