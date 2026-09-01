@@ -24,12 +24,15 @@
 
       <section class="pos-layout" aria-label="點單系統">
         <section class="menu-panel">
-          <div class="tabs" role="tablist">
-            <button class="tab active" data-category="drink">飲品</button>
-            <button class="tab" data-category="vip">VIP 餐卡兌換</button>
-            <button class="tab" data-category="card">VIP 營養卡</button>
-            <button class="tab" data-category="workshop-card">工作坊套票</button>
-            <button class="tab" data-category="calendar">預約行事曆</button>
+          <div class="tab-groups" role="tablist">
+            <section class="tab-group tab-group-sales" aria-label="收款銷售">
+              <span class="tab-group-label">收款／銷售</span>
+              <div><button class="tab active" data-category="drink">飲品</button><button class="tab" data-category="card">VIP 營養卡</button><button class="tab" data-category="workshop-card">工作坊套票</button></div>
+            </section>
+            <section class="tab-group" aria-label="兌換管理">
+              <span class="tab-group-label">兌換／管理</span>
+              <div><button class="tab" data-category="vip">VIP 餐卡兌換</button><button class="tab" data-category="calendar">預約行事曆</button></div>
+            </section>
           </div>
           <div id="menuGrid" class="menu-grid"></div>
         </section>
