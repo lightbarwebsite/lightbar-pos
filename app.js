@@ -14,6 +14,9 @@ const products = [
   { id:'cocoa-mocha', category:'drink', emoji:'🍫', name:'舒心可可摩卡', detail:'單點飲品', price:250, photo:'S__21495856.jpg', focus:'15px -35px' },
   { id:'protein-shake', category:'drink', emoji:'🥤', name:'能量蛋白奶昔', detail:'單點飲品', price:220, photo:'S__21495855.jpg', focus:'-15px 5px' },
   { id:'cr7', category:'drink', emoji:'⚡', name:'CR7 勁能飲', detail:'單點飲品', price:150 },
+  { id:'stored-cr7', category:'stored-drink', emoji:'⚡', name:'CR7 勁能飲寄杯', detail:'每杯 NT$150・結帳後自動建立寄杯額度', price:150 },
+  { id:'stored-180', category:'stored-drink', emoji:'🥤', name:'特調飲品寄杯 NT$180', detail:'每杯 NT$180・結帳後自動建立寄杯額度', price:180 },
+  { id:'stored-250', category:'stored-drink', emoji:'🥤', name:'特調飲品寄杯 NT$250', detail:'每杯 NT$250・結帳後自動建立寄杯額度', price:250 },
   { id:'card-5', category:'card', emoji:'💳', name:'五格卡', detail:'空分者可拿 NT$200', price:980, units:5, tea:'瓜茶' },
   { id:'card-15', category:'card', emoji:'💳', name:'十五格卡', detail:'空分者可拿 NT$600', price:2800, units:15, tea:'瓜茶' },
   { id:'card-active-5', category:'card', emoji:'⚡', name:'換舒活飲 5 格', detail:'空分者可拿 NT$200', price:1120, units:5, tea:'舒活飲' },
@@ -188,7 +191,7 @@ function renderCart() {
   const hasWorkshop = cart.some(i => i.category === 'workshop');
   $('#itemCount').textContent = vipActive ? 'VIP 兌換' : calendarPage ? '行事曆預約管理' : workshopBooking ? '工作坊預約' : `${cart.reduce((n,i)=>n+i.qty,0)} 項`;
   $('#subtotal').textContent = $('#total').textContent = money(total);
-  const requiresMember = cart.some(i => i.category === 'card' || i.category === 'workshop-card');
+  const requiresMember = cart.some(i => i.category === 'card' || i.category === 'workshop-card' || i.category === 'stored-drink');
   $('#checkout').disabled = calendarPage || cart.length === 0 || (vipActive && (!$('#customerName').value.trim() || !vipGrid)) || (workshopBooking && (!$('#customerName').value.trim() || !$('#workshopMembership').value || !selectedWorkshopEvent)) || (requiresMember && !$('#customerName').value.trim()) || (usingDrinkCredit&&!drinkCreditValid);
   $('#checkout').textContent = calendarPage ? '請點選日曆中的課程' : vipActive ? '完成 VIP 兌換登記' : workshopBooking ? '完成工作坊預約' : usingDrinkCredit ? (drinkCreditValid?'完成寄杯兌換':'寄杯額度不符合本筆飲品') : '完成結帳';
   $('#bookingFields').classList.toggle('hidden', !hasWorkshop);
@@ -203,7 +206,11 @@ function resetOrder() { cart=[]; vipActive=false; activeCategory='drink'; select
 function todayOrders() { return getOrders().filter(o=>o.date===today()); }
 function createMemberships(order) {
   const memberships = getMemberships();
-  order.items.filter(i => i.category === 'card' || i.category === 'workshop-card').forEach(item => {
+  order.items.filter(i => i.category === 'card' || i.category === 'workshop-card' || i.category === 'stored-drink').forEach(item => {
+    if (item.category==='stored-drink') {
+      memberships.push({id:`membership-${Date.now()}-${Math.random().toString(16).slice(2)}`,customer:order.customer,name:item.name,type:'寄杯',total:item.qty,remaining:item.qty,tea:'',bookingCode:'',usedGrids:[],purchasedAt:order.date,expiresAt:'無使用期限'});
+      return;
+    }
     const total = item.units || (item.category === 'workshop-card' ? 5 : 5);
     const type = item.category === 'workshop-card' ? '工作坊' : 'VIP';
     for (let n=0; n<item.qty; n++) { const purchasedAt=order.date, expiresAt=membershipExpiryDate({type,purchasedAt}); memberships.push({ id:`membership-${Date.now()}-${Math.random().toString(16).slice(2)}`, customer:order.customer, name:item.name, type, total, remaining:total, tea:item.tea||'', charityType:item.charityType||'', bookingCode:type==='工作坊'?makeBookingCode():'', usedGrids:[], purchasedAt, expiresAt }); }
