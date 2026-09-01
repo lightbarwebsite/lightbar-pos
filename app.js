@@ -130,6 +130,42 @@ function syncWorkshopMemberships() {
   if(eligible.some(m=>m.id===previous)) select.value=previous;
   else if(eligible.length===1) select.value=eligible[0].id;
 }
+function storedDrinkRule(member) {
+  if (/CR7/i.test(member.name)) return { kind:'product', value:'cr7', label:'CR7 勁能飲' };
+  const price = Number((member.name.match(/\$\s?(\d+)/) || [])[1]);
+  return price ? { kind:'price', value:price, label:`NT$${price} 飲品` } : null;
+}
+function storedDrinkCanCover(member) {
+  const rule=storedDrinkRule(member), quantity=cart.reduce((sum,item)=>sum+item.qty,0);
+  if (!rule || !quantity || quantity>member.remaining || cart.some(item=>item.category!=='drink')) return false;
+  return rule.kind==='product' ? cart.every(item=>item.id===rule.value) : cart.every(item=>item.price===rule.value);
+}
+function selectedDrinkCreditMembership() { return getMemberships().find(member=>member.id===$('#drinkCreditMembership').value); }
+function syncDrinkCreditMembers() {
+  const customerPicker=$('#drinkCreditCustomer'), membershipPicker=$('#drinkCreditMembership');
+  if (!customerPicker || !membershipPicker) return;
+  const previousCustomer=customerPicker.value, previousMembership=membershipPicker.value;
+  const cards=getMemberships().filter(member=>member.type==='寄杯'&&member.remaining>0);
+  const customers=[...new Set(cards.map(member=>member.customer))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+  customerPicker.innerHTML='<option value="">不使用寄杯</option>'+customers.map(customer=>`<option value="${customer}">${customer}</option>`).join('');
+  if(customers.includes(previousCustomer)) customerPicker.value=previousCustomer;
+  const selectedCustomer=customerPicker.value;
+  const customerCards=cards.filter(member=>member.customer===selectedCustomer);
+  membershipPicker.disabled=!selectedCustomer;
+  membershipPicker.innerHTML=selectedCustomer ? '<option value="">選擇寄杯額度</option>'+customerCards.map(member=>{const rule=storedDrinkRule(member);return `<option value="${member.id}">${member.name}｜剩 ${member.remaining} 杯${rule?`（限 ${rule.label}）`:''}</option>`;}).join('') : '<option value="">請先選擇客人</option>';
+  if(customerCards.some(member=>member.id===previousMembership)) membershipPicker.value=previousMembership;
+  else if(customerCards.length===1) membershipPicker.value=customerCards[0].id;
+  const selected=selectedDrinkCreditMembership(), info=$('#drinkCreditInfo');
+  if(!selected) info.textContent=selectedCustomer?'請選擇要扣除的寄杯額度。':'選擇客人後，系統會提示這筆飲品可使用的寄杯額度。';
+  else if(storedDrinkCanCover(selected)) info.textContent=`本筆可使用「${selected.name}」，將扣除 ${cart.reduce((sum,item)=>sum+item.qty,0)} 杯，剩餘 ${selected.remaining} 杯。`;
+  else { const rule=storedDrinkRule(selected); info.textContent=`此額度限兌換 ${rule?.label||'指定飲品'}；請確認購物車品項、單價與杯數。`; }
+}
+function useStoredDrinkMembership(id, quantity) {
+  if (!id || !quantity) return false;
+  const memberships=getMemberships(), card=memberships.find(member=>member.id===id);
+  if (!card || card.type!=='寄杯' || !storedDrinkCanCover(card)) return false;
+  card.remaining-=quantity; saveMemberships(memberships); return true;
+}
 function renderVipGrid() {
   const max = Number($('#vipCardType').value);
   const selected = selectedVipMembership();
@@ -146,20 +182,24 @@ function renderVipControls() {
 function renderCart() {
   const regularTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const workshopBooking = activeCategory === 'workshop', calendarPage = activeCategory === 'calendar';
-  const total = (vipActive || workshopBooking) ? 0 : regularTotal;
+  const drinkCredit=selectedDrinkCreditMembership(), usingDrinkCredit=activeCategory==='drink'&&!!drinkCredit;
+  const drinkCreditValid=usingDrinkCredit&&storedDrinkCanCover(drinkCredit);
+  const total = (vipActive || workshopBooking || drinkCreditValid) ? 0 : regularTotal;
   const hasWorkshop = cart.some(i => i.category === 'workshop');
   $('#itemCount').textContent = vipActive ? 'VIP 兌換' : calendarPage ? '行事曆預約管理' : workshopBooking ? '工作坊預約' : `${cart.reduce((n,i)=>n+i.qty,0)} 項`;
   $('#subtotal').textContent = $('#total').textContent = money(total);
   const requiresMember = cart.some(i => i.category === 'card' || i.category === 'workshop-card');
-  $('#checkout').disabled = calendarPage || cart.length === 0 || (vipActive && (!$('#customerName').value.trim() || !vipGrid)) || (workshopBooking && (!$('#customerName').value.trim() || !$('#workshopMembership').value || !selectedWorkshopEvent)) || (requiresMember && !$('#customerName').value.trim());
-  $('#checkout').textContent = calendarPage ? '請點選日曆中的課程' : vipActive ? '完成 VIP 兌換登記' : workshopBooking ? '完成工作坊預約' : '完成結帳';
+  $('#checkout').disabled = calendarPage || cart.length === 0 || (vipActive && (!$('#customerName').value.trim() || !vipGrid)) || (workshopBooking && (!$('#customerName').value.trim() || !$('#workshopMembership').value || !selectedWorkshopEvent)) || (requiresMember && !$('#customerName').value.trim()) || (usingDrinkCredit&&!drinkCreditValid);
+  $('#checkout').textContent = calendarPage ? '請點選日曆中的課程' : vipActive ? '完成 VIP 兌換登記' : workshopBooking ? '完成工作坊預約' : usingDrinkCredit ? (drinkCreditValid?'完成寄杯兌換':'寄杯額度不符合本筆飲品') : '完成結帳';
   $('#bookingFields').classList.toggle('hidden', !hasWorkshop);
   $('#workshopBookingFields').classList.toggle('hidden', !workshopBooking);
+  $('#drinkCreditFields').classList.toggle('hidden', activeCategory!=='drink');
   $('#customerField').classList.toggle('hidden', vipActive || workshopBooking || calendarPage);
+  if(activeCategory==='drink') syncDrinkCreditMembers();
   $('#cartItems').innerHTML = calendarPage ? '<div class="calendar-side-guide"><strong>新版預約管理</strong><p>直接點選左側日曆中的課程，即可查看該堂課的客人名單、取消預約，或查看客人的其他預約。</p></div>' : vipActive ? '<p class="empty-cart">請完成右側的會員、格數、口味與 Boost 選擇</p>' : workshopBooking ? '<p class="empty-cart">請從左側選擇可預約課程，再選擇持票會員</p>' : (cart.length ? cart.map(i => `<div class="cart-row"><div><strong>${i.name}</strong><small>${money(i.price)}／份</small><div class="line-actions"><button class="qty" data-action="minus" data-id="${i.id}">−</button><span class="quantity">${i.qty}</span><button class="qty" data-action="plus" data-id="${i.id}">+</button><button class="remove" data-action="remove" data-id="${i.id}">移除</button></div></div><span class="line-price">${money(i.price*i.qty)}</span></div>`).join('') : '<p class="empty-cart">從左側選擇品項開始點單</p>');
 }
 function addProduct(id) { const p = products.find(x=>x.id===id); if(!p)return; const line = cart.find(x=>x.id===id); if(p.charityType&&((line?.qty||0)>=charitySlotsLeft(p.charityType))){alert('這個公益名額本月已無剩餘名額。');return;} line ? line.qty++ : cart.push({...p,qty:1}); if(p.category==='workshop') syncWorkshopMemberships(); renderCart(); }
-function resetOrder() { cart=[]; vipActive=false; activeCategory='drink'; selectedWorkshopEvent=null; vipGrid=null; vipSelections={flavor:[],boost:[]}; $('#customerName').value=''; $('#coachName').value=''; $('#vipMemberPicker').innerHTML='<option value="">請選擇會員</option>'; $('#vipMembership').innerHTML='<option value="">手動登記卡別</option>'; $('#workshopMemberPicker').innerHTML='<option value="">請選擇會員</option>'; $('#workshopMembership').innerHTML='<option value="">請先選擇會員</option>'; $('#bookingDate').value=''; $('#bookingContact').value=''; $('#orderNote').value=''; document.querySelectorAll('[data-vip-choice] button').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.category==='drink')); renderVipControls(); renderMenu(); renderCart(); }
+function resetOrder() { cart=[]; vipActive=false; activeCategory='drink'; selectedWorkshopEvent=null; vipGrid=null; vipSelections={flavor:[],boost:[]}; $('#customerName').value=''; $('#coachName').value=''; $('#vipMemberPicker').innerHTML='<option value="">請選擇會員</option>'; $('#vipMembership').innerHTML='<option value="">手動登記卡別</option>'; $('#workshopMemberPicker').innerHTML='<option value="">請選擇會員</option>'; $('#workshopMembership').innerHTML='<option value="">請先選擇會員</option>'; $('#drinkCreditCustomer').innerHTML='<option value="">不使用寄杯</option>'; $('#drinkCreditMembership').innerHTML='<option value="">請先選擇客人</option>'; $('#bookingDate').value=''; $('#bookingContact').value=''; $('#orderNote').value=''; document.querySelectorAll('[data-vip-choice] button').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.category==='drink')); renderVipControls(); renderMenu(); renderCart(); }
 function todayOrders() { return getOrders().filter(o=>o.date===today()); }
 function createMemberships(order) {
   const memberships = getMemberships();
@@ -256,6 +296,8 @@ $('#vipCardType').addEventListener('change',()=>{vipGrid=null;renderVipGrid();re
 $('#vipMemberPicker').addEventListener('change',()=>{$('#customerName').value=$('#vipMemberPicker').value;syncVipMemberships();const selected=selectedVipMembership();if(selected){$('#vipCardType').value=String(selected.total);vipGrid=selected.usedGrids.length+1;}renderVipGrid();renderCart();});
 $('#vipMembership').addEventListener('change',()=>{const selected=selectedVipMembership();if(selected){$('#vipCardType').value=String(selected.total);vipGrid=selected.usedGrids.length+1;}renderVipGrid();renderCart();});
 $('#workshopMemberPicker').addEventListener('change',()=>{$('#customerName').value=$('#workshopMemberPicker').value;syncWorkshopMemberships();renderCart();});
+$('#drinkCreditCustomer').addEventListener('change',()=>{if($('#drinkCreditCustomer').value)$('#customerName').value=$('#drinkCreditCustomer').value;syncDrinkCreditMembers();renderCart();});
+$('#drinkCreditMembership').addEventListener('change',()=>{const card=selectedDrinkCreditMembership();if(card)$('#customerName').value=card.customer;renderCart();});
 $('#customerName').addEventListener('input',()=>{syncWorkshopMemberships();if(vipActive){syncVipMemberships();renderVipGrid();}renderCart();});
-$('#checkout').addEventListener('click',()=>{const workshopBooking=['workshop','calendar'].includes(activeCategory),total=(vipActive||workshopBooking)?0:cart.reduce((s,i)=>s+i.price*i.qty,0), selectedCard=selectedVipMembership();const vip=vipActive?{membershipId:$('#vipMembership').value,cardType:$('#vipCardType').value,grid:vipGrid,tea:selectedCard?.tea||'',coach:$('#coachName').value,flavor:vipSelections.flavor,boost:vipSelections.boost}:null;const workshopMembershipId=$('#workshopMembership').value;if(workshopBooking&&!bookWorkshop(workshopMembershipId)) return;const order={id:`order-${Date.now()}-${Math.random().toString(16).slice(2)}`,date:today(),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),customer:$('#customerName').value.trim(),bookingDate:workshopBooking?selectedWorkshopEvent.date:$('#bookingDate').value,contact:$('#bookingContact').value.trim(),note:$('#orderNote').value.trim(),items:cart,total,vip,workshopMembershipId,workshopEvent:workshopBooking?selectedWorkshopEvent:null};createMemberships(order);useVipMembership(vip||{});useWorkshopMembership(workshopMembershipId);saveOrders([...getOrders(),order]);$('#successMessage').textContent=vip?`${order.customer} 已登記 ${vip.cardType} 格卡第 ${vip.grid} 格。`:workshopBooking?`${order.customer} 已預約 ${selectedWorkshopEvent.title}。`:`本筆金額 ${money(total)}，已納入今天統計。`;$('#successDialog').showModal();resetOrder();});
+$('#checkout').addEventListener('click',()=>{const workshopBooking=['workshop','calendar'].includes(activeCategory), drinkCard=activeCategory==='drink'?selectedDrinkCreditMembership():null, drinkQuantity=cart.reduce((sum,item)=>sum+item.qty,0), usingDrinkCredit=!!drinkCard;if(usingDrinkCredit&&!storedDrinkCanCover(drinkCard)){alert('這張寄杯額度無法兌換目前的飲品或杯數。');return;}const total=(vipActive||workshopBooking||usingDrinkCredit)?0:cart.reduce((s,i)=>s+i.price*i.qty,0), selectedCard=selectedVipMembership();const vip=vipActive?{membershipId:$('#vipMembership').value,cardType:$('#vipCardType').value,grid:vipGrid,tea:selectedCard?.tea||'',coach:$('#coachName').value,flavor:vipSelections.flavor,boost:vipSelections.boost}:null;const workshopMembershipId=$('#workshopMembership').value;if(workshopBooking&&!bookWorkshop(workshopMembershipId)) return;const order={id:`order-${Date.now()}-${Math.random().toString(16).slice(2)}`,date:today(),time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),customer:$('#customerName').value.trim(),bookingDate:workshopBooking?selectedWorkshopEvent.date:$('#bookingDate').value,contact:$('#bookingContact').value.trim(),note:$('#orderNote').value.trim(),items:cart,total,vip,workshopMembershipId,drinkCreditMembershipId:drinkCard?.id||'',drinkCreditName:drinkCard?.name||'',drinkCreditQuantity:usingDrinkCredit?drinkQuantity:0,workshopEvent:workshopBooking?selectedWorkshopEvent:null};createMemberships(order);useVipMembership(vip||{});useWorkshopMembership(workshopMembershipId);if(usingDrinkCredit)useStoredDrinkMembership(drinkCard.id,drinkQuantity);saveOrders([...getOrders(),order]);$('#successMessage').textContent=vip?`${order.customer} 已登記 ${vip.cardType} 格卡第 ${vip.grid} 格。`:workshopBooking?`${order.customer} 已預約 ${selectedWorkshopEvent.title}。`:usingDrinkCredit?`${order.customer} 已使用 ${drinkCard.name} 兌換 ${drinkQuantity} 杯，剩餘 ${drinkCard.remaining} 杯。`:`本筆金額 ${money(total)}，已納入今天統計。`;$('#successDialog').showModal();resetOrder();});
 fixLegacyFifteenCards(); ensureBookingCodes(); ensureExpiryDates(); ensureRecordIds(); renderMenu(); renderVipControls(); renderCart(); loadCloudData(); setInterval(loadCloudData,30000);
