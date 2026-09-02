@@ -49,6 +49,10 @@
           <div id="customerField">
             <label class="field-label" for="customerName">顧客姓名／桌號 <span>選填</span></label>
             <input id="customerName" type="text" placeholder="例如：王小姐／3號桌" />
+            <label class="field-label" for="saleCoach">所屬教練 <span>選填</span></label>
+            <select id="saleCoach">
+              <option value="">未指定</option><option>寶莛</option><option>晏玲</option><option>婉馨</option><option>寶筠</option><option>秀瓊</option><option>潔蘭</option><option>宥靜</option><option>素慈／光輝</option>
+            </select>
           </div>
           <section id="drinkCreditFields" class="drink-credit-fields hidden" aria-label="特調寄杯兌換">
             <p class="vip-title">特調寄杯兌換 <span>使用寄杯額度，不收現金</span></p>
@@ -62,12 +66,9 @@
             <p class="vip-title">VIP 餐卡兌換 <span>本筆不計入營收</span></p>
             <label class="field-label" for="vipMemberPicker">選擇 VIP 會員</label>
             <select id="vipMemberPicker"><option value="">請選擇會員</option></select>
-            <label class="field-label" for="coachName">教練是誰</label>
-            <select id="coachName">
-              <option value="">請選擇</option><option>寶莛</option><option>晏玲</option><option>婉馨</option><option>寶筠</option><option>秀瓊</option><option>潔蘭</option><option>宥靜</option><option>素慈／光輝</option>
-            </select>
             <label class="field-label" for="vipMembership">使用中的 VIP 卡 <span>輸入會員姓名後可選</span></label>
             <select id="vipMembership"><option value="">手動登記卡別</option></select>
+            <p id="vipCoachInfo" class="vip-tea-info hidden"></p>
             <p id="vipTeaInfo" class="vip-tea-info hidden"></p>
             <label class="field-label" for="vipCardType">VIP 餐卡</label>
             <select id="vipCardType"><option value="5">5 格卡</option><option value="15">15 格卡</option></select>
@@ -126,7 +127,7 @@
       <div class="dialog-header"><div><p class="eyebrow">MEMBERSHIP</p><h2>VIP／套票名冊</h2></div><button class="icon-button" data-close>&times;</button></div>
       <section class="membership-add">
         <strong>補登既有卡／寄杯 <small>不列入銷售額</small></strong>
-        <div class="membership-add-fields"><input id="membershipCustomer" type="text" placeholder="會員姓名" /><select id="membershipKind"><option value="vip-5">VIP 5 格卡</option><option value="vip-15">VIP 15 格卡</option><option value="workshop-1">工作坊單堂票</option><option value="workshop-5">工作坊五次套票</option><option value="stored-cr7">CR7 勁能飲寄杯（$150）</option><option value="stored-180">特調飲品寄杯（$180）</option><option value="stored-250">特調飲品寄杯（$250）</option></select><input id="membershipRemaining" type="number" min="1" value="5" aria-label="剩餘格數、次數或杯數" /></div>
+        <div class="membership-add-fields"><input id="membershipCustomer" type="text" placeholder="會員姓名" /><select id="membershipKind"><option value="vip-5">VIP 5 格卡</option><option value="vip-15">VIP 15 格卡</option><option value="workshop-1">工作坊單堂票</option><option value="workshop-5">好好生活工作坊五格套票</option><option value="stored-cr7">CR7 勁能飲寄杯（$150）</option><option value="stored-180">特調飲品寄杯（$180）</option><option value="stored-250">特調飲品寄杯（$250）</option></select><input id="membershipRemaining" type="number" min="1" value="5" aria-label="剩餘格數、次數或杯數" /></div>
         <button id="addMembership" class="secondary" type="button">加入名冊</button>
       </section>
       <label class="membership-search">搜尋會員<input id="membershipSearch" type="search" placeholder="輸入姓名、卡別或預約碼" /></label>
