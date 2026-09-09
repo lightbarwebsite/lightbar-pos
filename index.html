@@ -19,6 +19,7 @@
           <button id="showMemberships" class="secondary">VIP／套票名冊</button>
           <button id="newOrder" class="secondary">清空目前訂單</button>
           <button id="showReports" class="secondary">今日統計</button>
+          <button id="showMonthlyReports" class="secondary">月銷售回顧</button>
         </div>
       </header>
 
@@ -117,6 +118,13 @@
       <div class="dialog-header"><div><p class="eyebrow">DAILY REPORT</p><h2>今日營運統計</h2></div><button class="icon-button" data-close>&times;</button></div>
       <div id="reportContent"></div>
       <div class="dialog-actions"><button id="exportData" class="secondary">匯出今日 CSV</button><button class="primary" data-close>完成</button></div>
+    </dialog>
+
+    <dialog id="monthlyReportDialog">
+      <div class="dialog-header"><div><p class="eyebrow">MONTHLY REPORT</p><h2>月銷售回顧</h2></div><button class="icon-button" data-close>&times;</button></div>
+      <label class="monthly-picker">選擇月份<input id="monthlyReportMonth" type="month" /></label>
+      <div id="monthlyReportContent"></div>
+      <div class="dialog-actions"><button class="primary" data-close>完成</button></div>
     </dialog>
 
     <dialog id="orderEditDialog">
